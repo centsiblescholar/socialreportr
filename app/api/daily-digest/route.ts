@@ -218,6 +218,21 @@ async function handleDigest(req: NextRequest): Promise<NextResponse> {
       text,
     });
 
+    // Resend SDK v4 returns { data, error } — check for error before declaring success
+    if (emailResult.error) {
+      const elapsed = Date.now() - startTime;
+      console.error('[Daily Digest] Email send failed:', emailResult.error);
+      return NextResponse.json(
+        {
+          success: false,
+          elapsed: `${elapsed}ms`,
+          error: `Email delivery failed: ${emailResult.error.message}`,
+          briefing,
+        },
+        { status: 500 }
+      );
+    }
+
     const elapsed = Date.now() - startTime;
     console.log(
       `[Daily Digest] Complete in ${elapsed}ms | Errors: ${errors.length} | Email sent to ${recipientEmails.length} recipient(s)`
